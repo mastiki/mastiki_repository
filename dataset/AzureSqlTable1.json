@@ -5,6 +5,12 @@
 			"referenceName": "AzureSqlDatabase1",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"NumOfDays": {
+				"type": "int",
+				"defaultValue": 7
+			}
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": []
