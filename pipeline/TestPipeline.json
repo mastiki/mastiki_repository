@@ -93,6 +93,8 @@
 									"referenceName": "Parquet1",
 									"type": "DatasetReference",
 									"parameters": {
+										"container": "adftest",
+										"folder": "data_processed",
 										"file": {
 											"value": "{@item().filename}",
 											"type": "Expression"
