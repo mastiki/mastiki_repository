@@ -47,6 +47,11 @@
 			}
 		],
 		"concurrency": 1,
+		"parameters": {
+			"query_Template": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
