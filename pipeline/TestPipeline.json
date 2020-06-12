@@ -4,48 +4,6 @@
 		"description": "Test",
 		"activities": [
 			{
-				"name": "TestSqlOd",
-				"description": "test copying data ",
-				"type": "Copy",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "7.00:00:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": true,
-					"secureInput": true
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "AzureSqlSource",
-						"sqlReaderQuery": "-- SelectionEndpoints, 28sec, pre, sada wcus: 45sec \nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] as SubId,\n       [LogicalServerName_DT_String] AS [Endpoint]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/*.0000000.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200)\n)\nas [a]\nWHERE \n\t[AppTypeName_DT_String] = 'Worker.VDW.Frontend' and \n\t[ClusterName_DT_String] not like '%sqltest%' and \n\tdatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= (6*7 + 1) and -- 6 weeks + day cosmos delay\n\tcast(a.filepath(1) as datetime) > '2020-05-10' -- LogicalServerName is not hashed after this date",
-						"queryTimeout": "08:20:00"
-					},
-					"sink": {
-						"type": "ParquetSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings",
-							"maxConcurrentConnections": 100,
-							"copyBehavior": "PreserveHierarchy"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "SqlOD_SqlTelemetry",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "Parquet1",
-						"type": "DatasetReference"
-					}
-				]
-			},
-			{
 				"name": "GetFiles",
 				"description": "Get files to be processed form Cosmos",
 				"type": "Lookup",
@@ -54,8 +12,8 @@
 					"timeout": "7.00:00:00",
 					"retry": 3,
 					"retryIntervalInSeconds": 30,
-					"secureOutput": true,
-					"secureInput": true
+					"secureOutput": false,
+					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
