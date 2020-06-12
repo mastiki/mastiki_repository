@@ -7,10 +7,12 @@
 		},
 		"parameters": {
 			"container": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "adftest"
 			},
 			"folder": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "data_processed"
 			},
 			"file": {
 				"type": "string"
@@ -21,10 +23,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": {
-					"value": "@dataset().file",
-					"type": "Expression"
-				},
 				"folderPath": {
 					"value": "@dataset().folder",
 					"type": "Expression"
