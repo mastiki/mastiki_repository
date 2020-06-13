@@ -96,7 +96,7 @@
 										"container": "adftest",
 										"folder": "data_processed",
 										"file": {
-											"value": "concat('billing_',{@{item().filename})",
+											"value": "@concat('billing_',item().filepath)",
 											"type": "Expression"
 										}
 									}
