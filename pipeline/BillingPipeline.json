@@ -96,7 +96,7 @@
 										"container": "adf",
 										"folder": "billing",
 										"file": {
-											"value": "@item().filename",
+											"value": "@{item().filename}",
 											"type": "Expression"
 										}
 									}
