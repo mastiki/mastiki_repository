@@ -25,7 +25,8 @@
 					"dataset": {
 						"referenceName": "SqlOD_SqlTelemetry",
 						"type": "DatasetReference"
-					}
+					},
+					"firstRowOnly": false
 				}
 			},
 			{
