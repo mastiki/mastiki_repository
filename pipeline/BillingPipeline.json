@@ -96,7 +96,7 @@
 										"container": "adf",
 										"folder": "billing",
 										"file": {
-											"value": "@{item().filename}",
+											"value": "@concat('billing_',item().filename,'.parquet')",
 											"type": "Expression"
 										}
 									}
