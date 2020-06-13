@@ -95,10 +95,7 @@
 									"parameters": {
 										"container": "adftest",
 										"folder": "data_processed",
-										"file": {
-											"value": "concatenate('billing_',{@item()})",
-											"type": "Expression"
-										}
+										"file": "billing"
 									}
 								}
 							]
