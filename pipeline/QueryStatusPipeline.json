@@ -1,0 +1,7 @@
+{
+	"name": "QueryStatusPipeline",
+	"properties": {
+		"description": "Aggregate daily query status per endpoint.",
+		"annotations": []
+	}
+}
