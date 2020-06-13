@@ -27,6 +27,57 @@
 						"type": "DatasetReference"
 					}
 				}
+			},
+			{
+				"name": "ForEachFile",
+				"description": "Iterated through Cosmos files of interest.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetFiles').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ProcessQueryStatus",
+							"description": "Process query statuses for one day.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "with all_distributed_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n    [LogicalServerName_DT_String] AS [Endpoint],\n\t[SubscriptionId_DT_String] AS [SubscriptionId],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@{item().filepath},',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\tdistributed_statement_id_DT_String varchar(50),\n\teventName_DT_String varchar(200)\n)\n\tAS [b]\nWHERE [AppTypeName_DT_String] like 'Worker.VDW.%' and [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nall_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n    [LogicalServerName_DT_String] AS [Endpoint],\n\t[SubscriptionId_DT_String] AS [SubscriptionId],\n\t[status_DT_String] AS [QueryStatus],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@{item().filepath},',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\tdistributed_statement_id_DT_String varchar(50),\n\teventName_DT_String varchar(200),\n\t[status_DT_String] varchar(30),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\nAS [a]\nWHERE [AppTypeName_DT_String] like 'Worker.VDW.%' and [eventName_DT_String] = 'vdw_statement_execution' and [ClusterName_DT_String] not like '%sqltest%' and [status_DT_String] <> 'Started'\n),\njoined_data as \n(\nselect all_queries.* from all_queries \ninner join all_distributed_queries on all_queries.Region = all_distributed_queries.Region and all_queries.SubscriptionId = all_distributed_queries.SubscriptionId and all_queries.Endpoint = all_distributed_queries.Endpoint and all_queries.DistributedStatementId = all_distributed_queries.DistributedStatementId\n),\nprefinal_data as\n(\nselect Region,SubscriptionId,Endpoint,QueryStatus,currentDay,count(distinct DistributedStatementId) as numOfQueries from joined_data\ngroup by Region,SubscriptionId,Endpoint,QueryStatus,currentDay\n),\nsucceeded_queries as\n(\nselect \nRegion,\nSubscriptionId,\nEndpoint,\ncurrentDay,\nnumOfQueries as numOfQueries_succeeded \nfrom prefinal_data\nwhere QueryStatus = 'Succeeded'\n),\nfailed_queries as\n(\nselect \nRegion, \nSubscriptionId,\nEndpoint,\ncurrentDay,\nnumOfQueries as numOfQueries_failed\nfrom prefinal_data\nwhere QueryStatus = 'Failed'\n),\ncanceled_queries as\n(\nselect \nRegion,\nSubscriptionId,\nEndpoint,\ncurrentDay,\nnumOfQueries as numOfQueries_canceled\nfrom prefinal_data\nwhere QueryStatus = 'Canceled'\n),\njoined_prefinal as\n(\nselect \nisnull(numOfQueries_succeeded,0) as numOfQueries_succeeded,\nisnull(numOfQueries_failed,0) as numOfQueries_failed,\nisnull(succeeded_queries.Region,failed_queries.Region) as Region,\nisnull(succeeded_queries.SubscriptionId,failed_queries.SubscriptionId) as SubscriptionId,\nisnull(succeeded_queries.Endpoint,failed_queries.Endpoint) as Endpoint,\nisnull(succeeded_queries.currentDay,failed_queries.currentDay) as currentDay\nfrom succeeded_queries\nfull outer join failed_queries \non succeeded_queries.Region = failed_queries.Region and succeeded_queries.SubscriptionId = failed_queries.SubscriptionId and succeeded_queries.Endpoint = failed_queries.Endpoint and succeeded_queries.currentDay = failed_queries.currentDay\n)\nselect \nisnull(numOfQueries_succeeded,0) as numOfQueries_succeeded,\nisnull(numOfQueries_failed,0) as numOfQueries_failed,\nisnull(numOfQueries_canceled,0) as numOfQueries_canceled,\nisnull(joined_prefinal.Region,canceled_queries.Region) as Region,\nisnull(joined_prefinal.SubscriptionId,canceled_queries.SubscriptionId) as SubscriptionId,\nisnull(joined_prefinal.Endpoint,canceled_queries.Endpoint) as Endpoint,\nisnull(joined_prefinal.currentDay,canceled_queries.currentDay) as currentDay\nfrom joined_prefinal\nfull outer join canceled_queries\non joined_prefinal.Region = canceled_queries.Region and joined_prefinal.SubscriptionId = canceled_queries.SubscriptionId and joined_prefinal.Endpoint = canceled_queries.Endpoint and joined_prefinal.currentDay = canceled_queries.currentDay\n",
+									"queryTimeout": "08:20:00"
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SqlOD_SqlTelemetry",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
