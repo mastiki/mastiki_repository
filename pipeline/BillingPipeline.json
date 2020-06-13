@@ -5,7 +5,7 @@
 		"activities": [
 			{
 				"name": "GetFiles",
-				"description": "Get files to be processed form Cosmos",
+				"description": "Get files to be processed from Cosmos",
 				"type": "Lookup",
 				"dependsOn": [],
 				"policy": {
