@@ -3,13 +3,23 @@
 	"properties": {
 		"annotations": [],
 		"runtimeState": "Started",
-		"pipelines": [],
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "BillingPipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
+				}
+			}
+		],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2020-06-13T01:00:00.000Z",
+				"startTime": "2020-06-14T01:00:00.000Z",
 				"timeZone": "UTC"
 			}
 		}

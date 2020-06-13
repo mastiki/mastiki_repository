@@ -90,7 +90,7 @@
 							],
 							"outputs": [
 								{
-									"referenceName": "Parquet1",
+									"referenceName": "ParquetOutput",
 									"type": "DatasetReference",
 									"parameters": {
 										"container": "adf",
