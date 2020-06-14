@@ -34,6 +34,10 @@
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
+		},
+		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
 		}
 	},
 	"variables": {
@@ -755,6 +759,126 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AvgMaxDailyActivityPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Aggregates enpoint daily activity",
+				"activities": [
+					{
+						"name": "GetFiles",
+						"description": "Get files to be processed from cosmos.",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.0000000.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}\n",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "SqlOD_SqlTelemetry",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachFile",
+						"description": "Iterates through the cosmos files of interest.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ProcessAvgMaxDailyActivity",
+									"description": "Process one avg/max daily activity stream.",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": "with endpointsTotal as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String]  AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/@{item().filename}.0000000.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpoints as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n    [LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\tDATEPART(hour,originalEventTimestamp_DT_DateTime) AS [currentHour]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpointsSummarized as\n(\nSELECT Region,SubscriptionId,Endpoint,currentDay,count(distinct currentHour) as hoursActive\nFROM activeEndpoints\nGROUP BY Region,SubscriptionId,Endpoint,currentDay\n),\njoined_data as\n(\nselect \n\tendpointsTotal.Region as Region,\n\tendpointsTotal.Endpoint as Endpoint,\n\tendpointsTotal.currentDay as currentDay,\n\tendpointsTotal.SubscriptionId as SubscriptionId,\n\tactiveEndpointsSummarized.Region as ActiveRegion,\n\tactiveEndpointsSummarized.Endpoint as ActiveEndpoint,\n\tactiveEndpointsSummarized.currentDay as ActiveCurrentDay,\n\tactiveEndpointsSummarized.SubscriptionId as ActiveSubscriptionId,\n\tactiveEndpointsSummarized.hoursActive as hoursActive\nfrom endpointsTotal \nleft outer join activeEndpointsSummarized \non endpointsTotal.Region = activeEndpointsSummarized.Region and endpointsTotal.SubscriptionId = activeEndpointsSummarized.SubscriptionId and endpointsTotal.Endpoint = activeEndpointsSummarized.Endpoint and endpointsTotal.currentDay = activeEndpointsSummarized.currentDay\n)\nselect \n\tRegion,\n\tEndpoint,\n\tSubscriptionId,\n\tcurrentDay,\n\thoursActive = iif(hoursActive is NULL,0,hoursActive)\nfrom joined_data\n",
+											"queryTimeout": "08:20:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlOD_SqlTelemetry",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ParquetOutput",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": "adf",
+												"folder": "AvgMaxDailyActivity",
+												"file": {
+													"value": "@concat('AvgMaxDailyActivity_',item().filename,'.parquet')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"ParameterNumberOfDays": {
+						"type": "int",
+						"defaultValue": 7
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
+				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/TriggerBilling')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
@@ -913,6 +1037,39 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerAvgMaxDailyActivity')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "AvgMaxDailyActivityPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-15T00:00:00.000Z",
+						"timeZone": "UTC",
+						"schedule": {}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/AvgMaxDailyActivityPipeline')]"
 			]
 		}
 	]
