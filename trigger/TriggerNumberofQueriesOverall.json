@@ -8,6 +8,9 @@
 				"pipelineReference": {
 					"referenceName": "NumberOfQueriesOverall",
 					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
 				}
 			}
 		],
