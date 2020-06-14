@@ -1,0 +1,27 @@
+{
+	"name": "TriggerNumberOfQueries",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "NumberOfQueries",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2020-06-15T04:00:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
