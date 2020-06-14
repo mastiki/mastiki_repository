@@ -23,11 +23,15 @@
 			"type": "int",
 			"defaultValue": 5
 		},
-		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
+		"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
 		},
 		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
 		}
@@ -379,6 +383,129 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/NumberOfQueriesOverall')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Aggregates daily number of queries (including inactive endpoints).",
+				"activities": [
+					{
+						"name": "GetFiles",
+						"description": "Get files to be processed from Cosmos.",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.0000000.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "SqlOD_SqlTelemetry",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachFile",
+						"description": "Iterates through the Cosmos streams of interest.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ProcessNumberOfQueriesOverall",
+									"description": "Process one daily number of queries overall file.",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "with endpointsTotal as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String] AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/@{item().filename}.0000000.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%'\n),\nall_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n    [LogicalServerName_DT_String] AS [Endpoint],\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\toriginalEventTimestamp_DT_DateTime datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\teventName_DT_String varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nall_queries_summarized as\n(\nselect\n[Region],[Endpoint],[SubscriptionId],[currentDay],count(distinct [DistributedStatementId]) as numOfQueries\nfrom all_queries\ngroup by [Region],[Endpoint],[SubscriptionId],[currentDay]\n)\nselect \nendpointsTotal.Region,\nendpointsTotal.Endpoint,\nendpointsTotal.SubscriptionId,\nendpointsTotal.currentDay,\nisnull(all_queries_summarized.numOfQueries,0) as numOfQueries\nfrom endpointsTotal\nleft outer join all_queries_summarized on endpointsTotal.Region = all_queries_summarized.Region and endpointsTotal.Endpoint = all_queries_summarized.Endpoint and endpointsTotal.SubscriptionId = all_queries_summarized.SubscriptionId and endpointsTotal.currentDay = all_queries_summarized.currentDay\n",
+												"type": "Expression"
+											},
+											"queryTimeout": "08:20:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlOD_SqlTelemetry",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ParquetOutput",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": "adf",
+												"folder": "NumberOfQueriesOverall",
+												"file": "@concat('NumberOfQueriesOverall_',item().filename,'.parquet')"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"ParameterNumberOfDays": {
+						"type": "int",
+						"defaultValue": 7
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
+				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/QueryDurationPipeline')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -692,7 +819,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/TriggerQueryStatus')]",
+			"name": "[concat(parameters('factoryName'), '/TriggerNumberofQueriesOverall')]",
 			"type": "Microsoft.DataFactory/factories/triggers",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -701,11 +828,11 @@
 				"pipelines": [
 					{
 						"pipelineReference": {
-							"referenceName": "QueryStatusPipeline",
+							"referenceName": "NumberOfQueriesOverall",
 							"type": "PipelineReference"
 						},
 						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
+							"ParameterNumberOfDays": "[parameters('TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays')]"
 						}
 					}
 				],
@@ -714,13 +841,13 @@
 					"recurrence": {
 						"frequency": "Day",
 						"interval": 1,
-						"startTime": "2020-06-14T03:00:00.000Z",
+						"startTime": "2020-06-15T02:00:00.000Z",
 						"timeZone": "UTC"
 					}
 				}
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
+				"[concat(variables('factoryId'), '/pipelines/NumberOfQueriesOverall')]"
 			]
 		},
 		{
@@ -754,6 +881,38 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/QueryDurationPipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerQueryStatus')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "QueryStatusPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-14T03:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
 			]
 		}
 	]

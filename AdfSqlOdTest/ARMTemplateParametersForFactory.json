@@ -17,10 +17,13 @@
 		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
-		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
+		"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
 		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
+			"value": 5
+		},
+		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		}
 	}
