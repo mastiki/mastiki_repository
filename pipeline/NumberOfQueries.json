@@ -19,7 +19,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.0000000.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}",
+						"sqlReaderQuery": {
+							"value": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.0000000.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
@@ -65,7 +68,7 @@
 							"typeProperties": {
 								"source": {
 									"type": "AzureSqlSource",
-									"sqlReaderQuery": "with all_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n\t[LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n)\nselect\n[Region],[SubscriptionId],[Endpoint],[currentDay],count(distinct [DistributedStatementId]) as numOfQueries\nfrom all_queries\ngroup by [Region],[SubscriptionId],[Endpoint],[currentDay]",
+									"sqlReaderQuery": "with all_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n\t[LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n)\nselect\n[Region],[SubscriptionId],[Endpoint],[currentDay],count(distinct [DistributedStatementId]) as numOfQueries\nfrom all_queries\ngroup by [Region],[SubscriptionId],[Endpoint],[currentDay]",
 									"queryTimeout": "08:20:00"
 								},
 								"sink": {
