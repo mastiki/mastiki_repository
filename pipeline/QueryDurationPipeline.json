@@ -33,13 +33,73 @@
 				"name": "ForEachFile",
 				"description": "Iterates through the cosmos files of interest.",
 				"type": "ForEach",
-				"dependsOn": [],
-				"userProperties": []
+				"dependsOn": [
+					{
+						"activity": "GetFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetFiles').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ProcessQueryDuration",
+							"description": "Calculates query duration for one daily Cosmos stream.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "with backendQueries as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String] AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t   [distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%' and [eventName_DT_String] = 'vdw_distributed_computation_rpc'\n),\nallQueriesDuration as\n(\nSELECT \n\t   [duration_DT_Int64] / 1000000.0 as [Duration],\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String] AS [Endpoint],\n\t   [distributed_statement_id_DT_String] as [DistributedStatementId],\n\t   [status_DT_String] as [QueryStatus]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[duration_DT_Int64] bigint,\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\tdistributed_statement_id_DT_String varchar(50),\n\t[status_DT_String] varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%' and [eventName_DT_String] = 'vdw_statement_execution' and [status_DT_String] <> 'Started'\n)\nselect \n\ta.[Region],\n\ta.[DistributedStatementId],\n\ta.[Endpoint],\n\ta.[Duration],\n\ta.[QueryStatus],\n\tb.[currentDay]\n\tfrom allQueriesDuration a\ninner join backendQueries b on a.Region = b.Region and a.SubscriptionId = b.SubscriptionId and a.DistributedStatementId = b.DistributedStatementId and a.[Endpoint] = b.[Endpoint]\n",
+									"queryTimeout": "08:20:00"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SqlOD_SqlTelemetry",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ParquetOutput",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": "adf"
+									}
+								}
+							]
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
 			"ParameterNumberOfDays": {
-				"type": "int"
+				"type": "int",
+				"defaultValue": 7
 			}
 		},
 		"annotations": []
