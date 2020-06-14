@@ -1,0 +1,27 @@
+{
+	"name": "TriggerAvgMaxDailyActivity",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "AvgMaxDailyActivityPipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2020-06-15T00:00:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
