@@ -19,6 +19,10 @@
 			"type": "int",
 			"defaultValue": 5
 		},
+		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
@@ -58,6 +62,9 @@
 					},
 					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays')]"
 					},
 					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"

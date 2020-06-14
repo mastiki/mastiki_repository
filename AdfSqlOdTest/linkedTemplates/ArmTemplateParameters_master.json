@@ -14,6 +14,9 @@
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
+		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
+			"value": 5
+		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
