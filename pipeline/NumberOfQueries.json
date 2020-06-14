@@ -19,6 +19,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.0000000.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}",
 						"queryTimeout": "02:00:00"
 					},
 					"dataset": {
