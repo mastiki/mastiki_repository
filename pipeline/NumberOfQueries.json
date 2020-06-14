@@ -1,0 +1,7 @@
+{
+	"name": "NumberOfQueries",
+	"properties": {
+		"description": "Daily number of backend queries per endpoint.",
+		"annotations": []
+	}
+}
