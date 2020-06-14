@@ -87,7 +87,12 @@
 									"referenceName": "ParquetOutput",
 									"type": "DatasetReference",
 									"parameters": {
-										"container": "adf"
+										"container": "adf",
+										"folder": "QueryDuration",
+										"file": {
+											"value": "@concat('QueryDuration_',item().filename,'.parquet')",
+											"type": "Expression"
+										}
 									}
 								}
 							]
