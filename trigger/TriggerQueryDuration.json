@@ -1,0 +1,28 @@
+{
+	"name": "TriggerQueryDuration",
+	"properties": {
+		"description": "Triggers daily query duration pipeline.",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "QueryDurationPipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 1,
+				"startTime": "2020-06-14T05:00:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
