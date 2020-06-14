@@ -2,6 +2,33 @@
 	"name": "NumberOfQueries",
 	"properties": {
 		"description": "Daily number of backend queries per endpoint.",
+		"activities": [
+			{
+				"name": "GetFiles",
+				"description": "Get files to be processed from Cosmos.",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "SqlOD_SqlTelemetry",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
 		"annotations": []
 	}
 }
