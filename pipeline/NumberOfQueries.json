@@ -28,6 +28,74 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEachFile",
+				"description": "Iterates through the cosmos files of interest.",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "GetFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('GetFiles').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ProcessNumberofQueries",
+							"description": "Process one daily number of queries file.",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": "with all_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n\t[LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       '@item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n)\nselect\n[Region],[SubscriptionId],[Endpoint],[currentDay],count(distinct [DistributedStatementId]) as numOfQueries\nfrom all_queries\ngroup by [Region],[SubscriptionId],[Endpoint],[currentDay]",
+									"queryTimeout": "08:20:00"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "SqlOD_SqlTelemetry",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ParquetOutput",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": "adf",
+										"folder": "NumberOfQueries",
+										"file": "@concat('NumberOfQueries_',item().filename,'.parquet')"
+									}
+								}
+							]
+						}
+					]
+				}
 			}
 		],
 		"parameters": {
