@@ -28,6 +28,13 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEachFile",
+				"description": "Iterates through the cosmos files of interest.",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": []
 			}
 		],
 		"parameters": {
