@@ -1,0 +1,7 @@
+{
+	"name": "QueryDurationPipeline",
+	"properties": {
+		"description": "Pipeline that calculates query duration of distributed Polaris queries every day.",
+		"annotations": []
+	}
+}
