@@ -28,8 +28,20 @@
 					},
 					"firstRowOnly": false
 				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": []
 			}
 		],
+		"parameters": {
+			"ParameterNumberOfDays": {
+				"type": "int",
+				"defaultValue": 7
+			}
+		},
 		"annotations": []
 	}
 }
