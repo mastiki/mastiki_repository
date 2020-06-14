@@ -29,6 +29,12 @@
 				}
 			}
 		],
+		"parameters": {
+			"ParameterNumberOfDays": {
+				"type": "int",
+				"defaultValue": 7
+			}
+		},
 		"annotations": []
 	}
 }
