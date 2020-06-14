@@ -19,6 +19,10 @@
 			"type": "int",
 			"defaultValue": 5
 		},
+		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -54,6 +58,9 @@
 					},
 					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},
