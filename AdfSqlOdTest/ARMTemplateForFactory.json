@@ -26,6 +26,10 @@
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
+		},
+		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
 		}
 	},
 	"variables": {
@@ -717,6 +721,39 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerQueryDuration')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers daily query duration pipeline.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "QueryDurationPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2020-06-14T05:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/QueryDurationPipeline')]"
 			]
 		}
 	]
