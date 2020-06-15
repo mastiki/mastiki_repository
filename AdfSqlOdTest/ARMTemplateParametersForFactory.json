@@ -11,6 +11,9 @@
 		"AzureSqlDatabase1_connectionString": {
 			"value": ""
 		},
+		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+			"value": 5
+		},
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
@@ -24,9 +27,6 @@
 			"value": 5
 		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
-			"value": 5
-		},
-		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		}
 	}

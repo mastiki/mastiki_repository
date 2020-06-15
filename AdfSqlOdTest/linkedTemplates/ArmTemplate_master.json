@@ -15,6 +15,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
@@ -32,10 +36,6 @@
 			"defaultValue": 5
 		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
 		},
@@ -72,6 +72,9 @@
 					"AzureSqlDatabase1_connectionString": {
 						"value": "[parameters('AzureSqlDatabase1_connectionString')]"
 					},
+					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+					},
 					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
 					},
@@ -86,9 +89,6 @@
 					},
 					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
-					},
-					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},
