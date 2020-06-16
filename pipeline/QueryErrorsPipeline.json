@@ -29,12 +29,29 @@
 				}
 			},
 			{
-				"name": "ForEach1",
+				"name": "ForEachFile",
+				"description": "Iterates through Cosmos files of interest.",
 				"type": "ForEach",
-				"dependsOn": [],
-				"userProperties": []
+				"dependsOn": [
+					{
+						"activity": "GetFiles",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"isSequential": true
+				}
 			}
 		],
+		"parameters": {
+			"ParameterNumberOfDays": {
+				"type": "string",
+				"defaultValue": "7"
+			}
+		},
 		"annotations": []
 	}
 }
