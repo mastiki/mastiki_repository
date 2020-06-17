@@ -39,6 +39,10 @@
 			"type": "int",
 			"defaultValue": 5
 		},
+		"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
+			"type": "string",
+			"defaultValue": "5"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -89,6 +93,9 @@
 					},
 					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},

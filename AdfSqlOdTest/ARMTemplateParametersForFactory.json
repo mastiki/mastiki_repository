@@ -28,6 +28,9 @@
 		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
+		},
+		"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
+			"value": "5"
 		}
 	}
 }
