@@ -26,11 +26,11 @@
 		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
-		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
-			"value": 5
-		},
 		"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
 			"value": "5"
+		},
+		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
+			"value": 5
 		}
 	}
 }
