@@ -1,0 +1,13 @@
+{
+	"name": "AzureDataLakeStoreCosmosStructuredStream1",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDataLakeStoreCosmosStructuredStream",
+		"typeProperties": {
+			"accountName": "sqldb-prod-c11",
+			"tenant": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+			"subscriptionId": "c071af7d-3311-4dda-aa85-18afdeaed3a0",
+			"resourceGroupName": "conv"
+		}
+	}
+}
