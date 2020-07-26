@@ -1,0 +1,17 @@
+{
+	"name": "ScopeActivityRuntime",
+	"properties": {
+		"type": "Managed",
+		"description": "For ADLS Linked Service Use.",
+		"typeProperties": {
+			"computeProperties": {
+				"location": "West US 2",
+				"dataFlowProperties": {
+					"computeType": "General",
+					"coreCount": 8,
+					"timeToLive": 0
+				}
+			}
+		}
+	}
+}
