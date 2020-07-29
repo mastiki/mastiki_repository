@@ -15,6 +15,22 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
+			"type": "string",
+			"defaultValue": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c071af7d-3311-4dda-aa85-18afdeaed3a0"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
 		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
@@ -76,6 +92,18 @@
 					"AzureSqlDatabase1_connectionString": {
 						"value": "[parameters('AzureSqlDatabase1_connectionString')]"
 					},
+					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName')]"
+					},
+					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant')]"
+					},
+					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId')]"
+					},
+					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName')]"
+					},
 					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
 					},
@@ -93,13 +121,33 @@
 					},
 					"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
 					},
 					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'ArmTemplate_0')]"
+			]
 		}
 	]
 }

@@ -11,6 +11,18 @@
 		"AzureSqlDatabase1_connectionString": {
 			"value": ""
 		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
+			"value": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
+			"value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId": {
+			"value": "c071af7d-3311-4dda-aa85-18afdeaed3a0"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
+			"value": "conv"
+		},
 		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},

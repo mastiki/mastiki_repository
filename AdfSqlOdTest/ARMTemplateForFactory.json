@@ -15,6 +15,22 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
+			"type": "string",
+			"defaultValue": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c071af7d-3311-4dda-aa85-18afdeaed3a0"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
 		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
@@ -122,7 +138,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "with endpointsTotal as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String]  AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/@{item().filename}.0000000.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpoints as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n    [LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\tDATEPART(hour,originalEventTimestamp_DT_DateTime) AS [currentHour]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpointsSummarized as\n(\nSELECT Region,SubscriptionId,Endpoint,currentDay,count(distinct currentHour) as hoursActive\nFROM activeEndpoints\nGROUP BY Region,SubscriptionId,Endpoint,currentDay\n),\njoined_data as\n(\nselect \n\tendpointsTotal.Region as Region,\n\tendpointsTotal.Endpoint as Endpoint,\n\tendpointsTotal.currentDay as currentDay,\n\tendpointsTotal.SubscriptionId as SubscriptionId,\n\tactiveEndpointsSummarized.Region as ActiveRegion,\n\tactiveEndpointsSummarized.Endpoint as ActiveEndpoint,\n\tactiveEndpointsSummarized.currentDay as ActiveCurrentDay,\n\tactiveEndpointsSummarized.SubscriptionId as ActiveSubscriptionId,\n\tactiveEndpointsSummarized.hoursActive as hoursActive\nfrom endpointsTotal \nleft outer join activeEndpointsSummarized \non endpointsTotal.Region = activeEndpointsSummarized.Region and endpointsTotal.SubscriptionId = activeEndpointsSummarized.SubscriptionId and endpointsTotal.Endpoint = activeEndpointsSummarized.Endpoint and endpointsTotal.currentDay = activeEndpointsSummarized.currentDay\n)\nselect \n\tRegion,\n\tEndpoint,\n\tSubscriptionId,\n\tcurrentDay,\n\thoursActive = iif(hoursActive is NULL,0,hoursActive)\nfrom joined_data\n",
+												"value": "with endpointsTotal as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String]  AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/@{item().filename}.0000000.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpoints as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n    [LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\tDATEPART(hour,originalEventTimestamp_DT_DateTime) AS [currentHour]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpointsSummarized as\n(\nSELECT Region,SubscriptionId,Endpoint,currentDay,count(distinct currentHour) as hoursActive\nFROM activeEndpoints\nGROUP BY Region,SubscriptionId,Endpoint,currentDay\n),\njoined_data as\n(\nselect \n\tendpointsTotal.Region as TotalRegion,\n\tendpointsTotal.Endpoint as TotalEndpoint,\n\tendpointsTotal.currentDay as TotalCurrentDay,\n\tendpointsTotal.SubscriptionId as TotalSubscriptionId,\n\tactiveEndpointsSummarized.Region as ActiveRegion,\n\tactiveEndpointsSummarized.Endpoint as ActiveEndpoint,\n\tactiveEndpointsSummarized.currentDay as ActiveCurrentDay,\n\tactiveEndpointsSummarized.SubscriptionId as ActiveSubscriptionId,\n\tactiveEndpointsSummarized.hoursActive as hoursActive\nfrom endpointsTotal \nfull outer join activeEndpointsSummarized \non endpointsTotal.Region = activeEndpointsSummarized.Region and endpointsTotal.SubscriptionId = activeEndpointsSummarized.SubscriptionId and endpointsTotal.Endpoint = activeEndpointsSummarized.Endpoint and endpointsTotal.currentDay = activeEndpointsSummarized.currentDay\n)\nselect \n\tisnull(TotalRegion,ActiveRegion) as Region,\n\tisnull(TotalEndpoint,ActiveEndpoint) as Endpoint,\n\tisnull(TotalSubscriptionId,ActiveSubscriptionId) as SubscriptionId,\n\tisnull(TotalCurrentDay,ActiveCurrentDay) as currentDay,\n\thoursActive = iif(hoursActive is NULL,0,hoursActive)\nfrom joined_data\n",
 												"type": "Expression"
 											},
 											"queryTimeout": "08:20:00"
@@ -1121,6 +1137,22 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStoreCosmosStructuredStream1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDataLakeStoreCosmosStructuredStream",
+				"typeProperties": {
+					"accountName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName')]",
+					"tenant": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant')]",
+					"subscriptionId": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1286,8 +1318,7 @@
 						"frequency": "Day",
 						"interval": 1,
 						"startTime": "2020-06-14T05:00:00.000Z",
-						"timeZone": "UTC",
-						"schedule": {}
+						"timeZone": "UTC"
 					}
 				}
 			},
@@ -1319,8 +1350,7 @@
 						"frequency": "Day",
 						"interval": 1,
 						"startTime": "2020-06-17T23:00:00.000Z",
-						"timeZone": "UTC",
-						"schedule": {}
+						"timeZone": "UTC"
 					}
 				}
 			},
@@ -1359,6 +1389,26 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ScopeActivityRuntime')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"description": "For ADLS Linked Service Use.",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "West US 2",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 0
+						}
+					}
+				}
+			},
+			"dependsOn": []
 		}
 	]
 }
