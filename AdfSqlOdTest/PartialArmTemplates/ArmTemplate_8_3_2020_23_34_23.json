@@ -1,0 +1,255 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "AdfSqlOdTest"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AvgMaxDailyActivityPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Aggregates enpoint daily activity",
+				"activities": [
+					{
+						"name": "GetFiles",
+						"description": "Get files to be processed from cosmos.",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.*.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "SqlOD_SqlTelemetry",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachFile",
+						"description": "Iterates through the cosmos files of interest.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ProcessAvgMaxDailyActivity",
+									"description": "Process one avg/max daily activity stream.",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "with endpointsTotal as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [SubscriptionId_DT_String] AS [SubscriptionId], \n       [LogicalServerName_DT_String]  AS [Endpoint],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwConfigurations/Parquet/@{item().filename}.*.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] = 'Worker.VDW.Frontend' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpoints as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n    [LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\tDATEPART(hour,originalEventTimestamp_DT_DateTime) AS [currentHour]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n),\nactiveEndpointsSummarized as\n(\nSELECT Region,SubscriptionId,Endpoint,currentDay,count(distinct currentHour) as hoursActive\nFROM activeEndpoints\nGROUP BY Region,SubscriptionId,Endpoint,currentDay\n),\njoined_data as\n(\nselect \n\tendpointsTotal.Region as Region,\n\tendpointsTotal.Endpoint as Endpoint,\n\tendpointsTotal.currentDay as currentDay,\n\tendpointsTotal.SubscriptionId as SubscriptionId,\n\tactiveEndpointsSummarized.Region as ActiveRegion,\n\tactiveEndpointsSummarized.Endpoint as ActiveEndpoint,\n\tactiveEndpointsSummarized.currentDay as ActiveCurrentDay,\n\tactiveEndpointsSummarized.SubscriptionId as ActiveSubscriptionId,\n\tactiveEndpointsSummarized.hoursActive as hoursActive\nfrom endpointsTotal \nleft outer join activeEndpointsSummarized \non endpointsTotal.Region = activeEndpointsSummarized.Region and endpointsTotal.SubscriptionId = activeEndpointsSummarized.SubscriptionId and endpointsTotal.Endpoint = activeEndpointsSummarized.Endpoint and endpointsTotal.currentDay = activeEndpointsSummarized.currentDay\n)\nselect \n\tRegion,\n\tEndpoint,\n\tSubscriptionId,\n\tcurrentDay,\n\thoursActive = iif(hoursActive is NULL,0,hoursActive)\nfrom joined_data\n",
+												"type": "Expression"
+											},
+											"queryTimeout": "08:20:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlOD_SqlTelemetry",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ParquetOutput",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": "adf",
+												"folder": "AvgMaxDailyActivity",
+												"file": {
+													"value": "@concat('AvgMaxDailyActivity_',item().filename,'.parquet')",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"ParameterNumberOfDays": {
+						"type": "int",
+						"defaultValue": 7
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/BillingPerEndpointPipeline')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Aggregates billing data per endpoint daily",
+				"activities": [
+					{
+						"name": "GetFiles",
+						"description": "Get files to be processed from Cosmos",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT \nDISTINCT \na.filepath(1) as [filename], \na.filepath() as [filepath]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwBilling/Parquet/*.*.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}\n",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "SqlOD_SqlTelemetry",
+								"type": "DatasetReference"
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEachFile",
+						"description": "Iterates through the cosmos files of interest.",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "GetFiles",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('GetFiles').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ProcessBillingPerEndpoint",
+									"description": "Process one billing cosmos file.",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "with billable_queries as\n(\nSELECT DISTINCT\n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n       [LogicalServerName_DT_String] AS [Endpoint],\n\t   [SubscriptionId_DT_String] AS [SubscriptionId],\n\t   CAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t   [distributed_statement_id_DT_String] as [distributed_statement_id]\nFROM OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\toriginalEventTimestamp_DT_DateTime datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\teventName_DT_String varchar(200),\n\tis_internal_query_DT_Boolean bit,\n\tis_user_error_DT_Boolean bit\n)\n  AS [a]\nWHERE [AppTypeName_DT_String] like 'Worker.VDW.%' and [ClusterName_DT_String] not like '%sqltest%' and [eventName_DT_String] = 'polaris_billing_distributed_queries_executed'\nand is_internal_query_DT_Boolean = 0  and is_user_error_DT_Boolean = 0\n),\nallQueries_dataScanned_unique as\n(\nSELECT DISTINCT * from OPENROWSET (BULK \n       '@{item().filepath}',\n     FORMAT = 'PARQUET') \nas [c]\nWHERE [AppTypeName_DT_String] like 'Worker.VDW.%' and [ClusterName_DT_String] not like '%sqltest%' and \n([eventName_DT_String] = 'polaris_billing_data_scanned' or [eventName_DT_String] = 'polaris_billing_data_scanned_csv' or [eventName_DT_String] = 'polaris_billing_native_shuffle_data_moved' or [eventName_DT_String] = 'polaris_billing_data_written') \n),\nallQueries_dataScanned as\n(\nSELECT \n\t   substring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t   [LogicalServerName_DT_String] AS [Endpoint],\n\t   [SubscriptionId_DT_String] as SubscriptionId,\n\t   [distributed_statement_id_DT_String] as distributed_statement_id,\n\t   distributed_execution_id_DT_String as distributed_execution_id,\n\t   distributed_submission_id_DT_String as distributed_submission_id,\n\t   iif([eventName_DT_String] = 'polaris_billing_data_scanned' or [eventName_DT_String] = 'polaris_billing_data_scanned_csv',sync_read_total_size_bytes_DT_Int64,iif([eventName_DT_String] = 'polaris_billing_native_shuffle_data_moved',bytes_processed_DT_Int64,bytes_written_DT_Int64)) as [query_data_total]\nFROM allQueries_dataScanned_unique\n  AS [b]\nWHERE [AppTypeName_DT_String] like 'Worker.VDW.%' and [ClusterName_DT_String] not like '%sqltest%' and \n([eventName_DT_String] = 'polaris_billing_data_scanned' or [eventName_DT_String] = 'polaris_billing_data_scanned_csv' or [eventName_DT_String] = 'polaris_billing_native_shuffle_data_moved' or [eventName_DT_String] = 'polaris_billing_data_written')\n),\naggregatedDataSum as\n(\n\tselect \n\t\tdistributed_statement_id, \n\t\tdistributed_execution_id, \n\t\tdistributed_submission_id,\n\t\tRegion, \n\t\tEndpoint,\n\t\tSubscriptionId,\n\t\tsum(query_data_total) as sum_query_data_total\n\tfrom allQueries_dataScanned\n\tgroup by distributed_statement_id, distributed_execution_id, distributed_submission_id, Region, Endpoint, SubscriptionId\n),\naggregatedDataSumMax as\n(\n\tselect \n\t\tdistributed_statement_id, \n\t\tdistributed_execution_id, \n\t\tRegion, \n\t\tEndpoint,\n\t\tSubscriptionId,\n\t\tmax(sum_query_data_total) as max_sum_query_data_total\n\tfrom aggregatedDataSum\n\tgroup by distributed_statement_id, distributed_execution_id, Region, Endpoint, SubscriptionId\n),\naggregatedDataSumMaxSum as\n(\n\tselect \n\t\tdistributed_statement_id, \n\t\tRegion, \n\t\tEndpoint,\n\t\tSubscriptionId,\n\t\tsum(max_sum_query_data_total) as sum_max_sum_query_data_total\n\tfrom aggregatedDataSumMax\n\tgroup by distributed_statement_id, Region, Endpoint, SubscriptionId\n),\nprefinal as\n(\nselect \n\tbillable_queries.[Region],\n\tbillable_queries.[SubscriptionId],\n    billable_queries.[Endpoint],\n\tbillable_queries.[currentDay],\n\tbillable_queries.[distributed_statement_id],\n\tiif(aggregatedDataSumMaxSum.sum_max_sum_query_data_total /  1024.0 / 1024.0 < 10.0, 10.0, aggregatedDataSumMaxSum.sum_max_sum_query_data_total /  1024.0 / 1024.0) as query_data_total_mb\nfrom billable_queries\ninner join aggregatedDataSumMaxSum on billable_queries.Region = aggregatedDataSumMaxSum.Region and billable_queries.SubscriptionId = aggregatedDataSumMaxSum.SubscriptionId and billable_queries.Endpoint = aggregatedDataSumMaxSum.Endpoint and billable_queries.distributed_statement_id = aggregatedDataSumMaxSum.distributed_statement_id\n),\nselect\n\tRegion, SubscriptionId, Endpoint, currentDay, sum(query_data_total_mb) as query_data_total_mb\nfrom prefinal\ngroup by Region, SubscriptionId, Endpoint, currentDay",
+												"type": "Expression"
+											},
+											"queryTimeout": "08:20:00"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "SqlOD_SqlTelemetry",
+											"type": "DatasetReference"
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ParquetOutput",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": "adf",
+												"folder": "BillingPerEndpoint",
+												"file": "@concat('BillingPerEndpoint_',item().filename,'.parquet')"
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"parameters": {
+					"ParameterNumberOfDays": {
+						"type": "int",
+						"defaultValue": 7
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		}
+	]
+}
