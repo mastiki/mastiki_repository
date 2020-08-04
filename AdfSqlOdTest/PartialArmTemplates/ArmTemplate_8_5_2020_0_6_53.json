@@ -6,58 +6,6 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "AdfSqlOdTest"
-		},
-		"AzureBlobStorage1_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
-		},
-		"AzureSqlDatabase1_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
-		},
-		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
-			"type": "string",
-			"defaultValue": "sqldb-prod-c11"
-		},
-		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
-			"type": "string",
-			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
-		},
-		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId": {
-			"type": "string",
-			"defaultValue": "c071af7d-3311-4dda-aa85-18afdeaed3a0"
-		},
-		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
-			"type": "string",
-			"defaultValue": "conv"
-		},
-		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
-		},
-		"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
-			"type": "string",
-			"defaultValue": "5"
-		},
-		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
-			"type": "int",
-			"defaultValue": 5
 		}
 	},
 	"variables": {
@@ -95,8 +43,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -154,8 +101,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -185,10 +131,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/BillingPerEndpointPipeline')]",
@@ -221,8 +164,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -280,8 +222,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -308,10 +249,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/BillingPipeline')]",
@@ -344,8 +282,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -403,8 +340,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -435,133 +371,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/NumberOfQueries')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Daily number of backend queries per endpoint.",
-				"activities": [
-					{
-						"name": "GetFiles",
-						"description": "Get files to be processed from Cosmos.",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 3,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": {
-									"value": "SELECT \nDISTINCT \na.filepath(1) as [filename]\nFROM OPENROWSET (BULK'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/*.*.parquet',FORMAT = 'PARQUET')\nas [a]\nWHERE    \ndatediff(day,cast(a.filepath(1) as datetime), convert(date,getutcdate())) <= @{pipeline().parameters.ParameterNumberOfDays}\n",
-									"type": "Expression"
-								},
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "ForEachFile",
-						"description": "Iterates through the cosmos files of interest.",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "GetFiles",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('GetFiles').output.value",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "ProcessNumberofQueries",
-									"description": "Process one daily number of queries file.",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 3,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "AzureSqlSource",
-											"sqlReaderQuery": {
-												"value": "with all_queries as\n(\nSELECT DISTINCT\n\tsubstring([ClusterName_DT_String], charindex('.',[ClusterName_DT_String]) + 1, charindex('.',[ClusterName_DT_String],charindex('.',[ClusterName_DT_String])+1) - charindex('.',[ClusterName_DT_String]) - 1) as Region,\n\t[SubscriptionId_DT_String] AS [SubscriptionId], \n\t[LogicalServerName_DT_String] AS [Endpoint],\n\tCAST([originalEventTimestamp_DT_DateTime] as date) as [currentDay],\n\t[distributed_statement_id_DT_String] as [DistributedStatementId]\nFROM OPENROWSET (BULK \n       'https://sqldb-prod-c11.azuredatalakestore.net/webhdfs/v1/local/SqlAzure/Production/ssDaily/MonVdwQueryOperation/Parquet/@{item().filename}.*.parquet',\n     FORMAT = 'PARQUET') \nWITH\n(\n\tClusterName_DT_String varchar(100),\n\t[AppTypeName_DT_String] varchar(50),\n\tSubscriptionId_DT_String varchar(50),\n\tLogicalServerName_DT_String varchar(200),\n\t[originalEventTimestamp_DT_DateTime] datetime2,\n\tdistributed_statement_id_DT_String varchar(50),\n\t[eventName_DT_String] varchar(200)\n)\n\tAS [b]\nWHERE [eventName_DT_String] = 'vdw_distributed_computation_rpc' and [ClusterName_DT_String] not like '%sqltest%'\n)\nselect\n[Region],[SubscriptionId],[Endpoint],[currentDay],count(distinct [DistributedStatementId]) as numOfQueries\nfrom all_queries\ngroup by [Region],[SubscriptionId],[Endpoint],[currentDay]",
-												"type": "Expression"
-											},
-											"queryTimeout": "08:20:00"
-										},
-										"sink": {
-											"type": "ParquetSink",
-											"storeSettings": {
-												"type": "AzureBlobStorageWriteSettings"
-											}
-										},
-										"enableStaging": false
-									},
-									"inputs": [
-										{
-											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "ParquetOutput",
-											"type": "DatasetReference",
-											"parameters": {
-												"container": "adf",
-												"folder": "NumberOfQueries",
-												"file": "@concat('NumberOfQueries_',item().filename,'.parquet')"
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"parameters": {
-					"ParameterNumberOfDays": {
-						"type": "int",
-						"defaultValue": 7
-					}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/NumberOfQueriesOverall')]",
@@ -594,8 +404,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -653,8 +462,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -681,10 +489,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/QueryDurationPipeline')]",
@@ -717,8 +522,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -776,8 +580,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -807,10 +610,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/QueryErrorsPipeline')]",
@@ -842,8 +642,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -901,8 +700,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -929,10 +727,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
+			"dependsOn": []
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/QueryStatusPipeline')]",
@@ -965,8 +760,7 @@
 							},
 							"dataset": {
 								"referenceName": "SqlOD_SqlTelemetry",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -1024,8 +818,7 @@
 									"inputs": [
 										{
 											"referenceName": "SqlOD_SqlTelemetry",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -1051,362 +844,6 @@
 					}
 				},
 				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
-				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ParquetOutput')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlobStorage1",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"container": {
-						"type": "string",
-						"defaultValue": "adf"
-					},
-					"folder": {
-						"type": "string"
-					},
-					"file": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "Parquet",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": {
-							"value": "@dataset().file",
-							"type": "Expression"
-						},
-						"folderPath": {
-							"value": "@dataset().folder",
-							"type": "Expression"
-						},
-						"container": {
-							"value": "@dataset().container",
-							"type": "Expression"
-						}
-					},
-					"compressionCodec": "snappy"
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/SqlOD_SqlTelemetry')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Connection to sql-telemetry pool.",
-				"linkedServiceName": {
-					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStoreCosmosStructuredStream1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureDataLakeStoreCosmosStructuredStream",
-				"typeProperties": {
-					"accountName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName')]",
-					"tenant": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant')]",
-					"subscriptionId": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId')]",
-					"resourceGroupName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/AzureSqlDatabase1')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('AzureSqlDatabase1_connectionString')]"
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerAvgMaxDailyActivity')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "AvgMaxDailyActivityPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-15T00:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/AvgMaxDailyActivityPipeline')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerBilling')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "BillingPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-14T01:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/BillingPipeline')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerNumberOfQueries')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "NumberOfQueries",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-15T04:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/NumberOfQueries')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerNumberofQueriesOverall')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "NumberOfQueriesOverall",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-15T02:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/NumberOfQueriesOverall')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerQueryDuration')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"description": "Triggers daily query duration pipeline.",
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "QueryDurationPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-14T05:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/QueryDurationPipeline')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerQueryErrors')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "QueryErrorsPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-17T23:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/QueryErrorsPipeline')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/TriggerQueryStatus')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Started",
-				"pipelines": [
-					{
-						"pipelineReference": {
-							"referenceName": "QueryStatusPipeline",
-							"type": "PipelineReference"
-						},
-						"parameters": {
-							"ParameterNumberOfDays": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
-						}
-					}
-				],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Day",
-						"interval": 1,
-						"startTime": "2020-06-14T03:00:00.000Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/pipelines/QueryStatusPipeline')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/ScopeActivityRuntime')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "Managed",
-				"description": "For ADLS Linked Service Use.",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "West US 2",
-						"dataFlowProperties": {
-							"computeType": "General",
-							"coreCount": 8,
-							"timeToLive": 0
-						}
-					}
-				}
 			},
 			"dependsOn": []
 		}
