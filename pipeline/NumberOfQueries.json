@@ -95,7 +95,7 @@
 									"parameters": {
 										"container": "adf",
 										"folder": "NumberOfQueries",
-										"file": "@concat('NumberOfQueries_',item().filename,'.parquet')"
+										"file": "@concat('NumberOfQueries_',item().filename,'.',item().filename_partition,'.parquet')"
 									}
 								}
 							]
