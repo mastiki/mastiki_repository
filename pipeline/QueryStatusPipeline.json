@@ -96,7 +96,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"container": "adf",
-										"folder": "QueryStatus_new",
+										"folder": "QueryStatus",
 										"file": "@concat('query_status_',item().filename,'.parquet')"
 									}
 								}
