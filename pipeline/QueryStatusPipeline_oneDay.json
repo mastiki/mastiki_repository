@@ -1,5 +1,5 @@
 {
-	"name": "QueryStatusPipeline_copy1",
+	"name": "QueryStatusPipeline_oneDay",
 	"properties": {
 		"description": "Aggregate daily query status per endpoint.",
 		"activities": [
