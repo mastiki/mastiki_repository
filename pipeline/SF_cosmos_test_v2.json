@@ -1,0 +1,32 @@
+{
+	"name": "SF_cosmos_test_v2",
+	"properties": {
+		"activities": [
+			{
+				"name": "U-SQL_test",
+				"type": "DataLakeAnalyticsU-SQL",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"scriptPath": "loca/mastiki/myScripts/GetClusterLoad.script",
+					"scriptLinkedService": {
+						"referenceName": "AzureDataLakeStore",
+						"type": "LinkedServiceReference"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeAnalytics",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": []
+	}
+}
