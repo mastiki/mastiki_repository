@@ -15,7 +15,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"scriptPath": "/local/mastiki/myScripts/GetClusterLoad.script",
+					"scriptPath": "/local/mastiki/GetClusterLoad.script",
 					"scriptLinkedService": {
 						"referenceName": "AzureDataLakeStore",
 						"type": "LinkedServiceReference"
