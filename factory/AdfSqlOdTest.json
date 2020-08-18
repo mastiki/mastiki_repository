@@ -1,0 +1,11 @@
+{
+	"name": "AdfSqlOdTest",
+	"properties": {
+		"globalParameters": {
+			"ADFScopeSupport": {
+				"type": "bool",
+				"value": true
+			}
+		}
+	}
+}
