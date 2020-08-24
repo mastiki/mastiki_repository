@@ -20,8 +20,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureDataLakeStoreLocation",
-				"fileName": "cluster_load_test_scope.csv",
-				"folderPath": "local/mastiki"
+				"fileName": "@dataset().filename",
+				"folderPath": "@dataset().filepath"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
