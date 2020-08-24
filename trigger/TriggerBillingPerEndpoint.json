@@ -1,0 +1,28 @@
+{
+	"name": "TriggerBillingPerEndpoint",
+	"properties": {
+		"description": "Triggers BillingPerEndpoint pipeline, daily, last 5 days.",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "BillingPerEndpointPipeline",
+					"type": "PipelineReference"
+				},
+				"parameters": {
+					"ParameterNumberOfDays": 5
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2020-08-24T20:00:00.000Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}
