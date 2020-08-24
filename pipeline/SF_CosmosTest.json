@@ -17,7 +17,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"scriptFolderPath": "local/mastiki/myScripts",
-					"scriptFileName": "getClusterLoad_IDSU_ADF.script",
+					"scriptFileName": "GetClusterLoad_IDSU.script",
 					"scriptLinkedService": {
 						"referenceName": "AzureDataLakeStore",
 						"type": "LinkedServiceReference"
