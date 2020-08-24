@@ -44,7 +44,11 @@
 				"inputs": [
 					{
 						"referenceName": "DelimitedText1",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"filepath": "local/mastiki",
+							"filename": "cluster_load_test_scope.csv"
+						}
 					}
 				],
 				"outputs": [
