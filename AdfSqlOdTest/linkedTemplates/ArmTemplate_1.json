@@ -7,6 +7,34 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AdfSqlOdTest"
 		},
+		"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
+			"type": "string",
+			"defaultValue": "5"
+		},
 		"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
@@ -16,6 +44,218 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerAvgMaxDailyActivity')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "AvgMaxDailyActivityPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-15T00:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerBilling')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "BillingPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-14T01:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerBillingPerEndpoint')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers BillingPerEndpoint pipeline, daily, last 5 days.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "BillingPerEndpointPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-08-24T22:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerNumberOfQueries')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "NumberOfQueries",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-15T04:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerNumberofQueriesOverall')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "NumberOfQueriesOverall",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-15T02:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerQueryDuration')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers daily query duration pipeline.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "QueryDurationPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-14T05:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerQueryErrors')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "QueryErrorsPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-06-17T23:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/TriggerQueryStatus')]",
 			"type": "Microsoft.DataFactory/factories/triggers",

@@ -11,13 +11,69 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
 		},
+		"AzureDataLakeAnalytics_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeAnalytics'"
+		},
+		"AzureDataLakeStore_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeStore'"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeStoreCosmosStructuredStream1'"
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"AzureDataLakeAnalytics_properties_typeProperties_accountName": {
+			"type": "string",
+			"defaultValue": "sqldb-adhoc-c11"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
+		"AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri": {
+			"type": "string",
+			"defaultValue": "https://sqldb-adhoc-c11.azuredatalakestore.net/webhdfs/v1"
+		},
+		"AzureDataLakeStore_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeStore_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStore_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeStore_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
 			"type": "string",
 			"defaultValue": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
 		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
 			"type": "string",
@@ -36,6 +92,10 @@
 			"defaultValue": 5
 		},
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
 		},
@@ -1050,7 +1110,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"container": "adf",
-												"folder": "QueryStatus_new",
+												"folder": "QueryStatus",
 												"file": "@concat('query_status_',item().filename,'.parquet')"
 											}
 										}
@@ -1071,6 +1131,190 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SqlOD_SqlTelemetry')]",
 				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SF_CosmosTest')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ScopeTest",
+						"description": "Test running scope script via ADF.",
+						"type": "DataLakeAnalyticsScope",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"scriptFolderPath": "local/mastiki/myScripts",
+							"scriptFileName": "GetClusterLoad_IDSU.script",
+							"scriptLinkedService": {
+								"referenceName": "AzureDataLakeStore",
+								"type": "LinkedServiceReference"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDataLakeAnalytics",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStore')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeAnalytics')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SF_cosmos_copy')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureDataLakeStoreReadSettings",
+									"recursive": true
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DelimitedText1",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ParquetOutput",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": "adf",
+									"folder": "test_cosmos",
+									"file": "copied_file.csv"
+								}
+							}
+						]
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('factoryId'), '/datasets/ParquetOutput')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SF_cosmos_test_v2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "U-SQL_test",
+						"type": "DataLakeAnalyticsU-SQL",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"scriptPath": "local/mastiki/myScripts/GetClusterLoad_IDSU.script",
+							"scriptLinkedService": {
+								"referenceName": "AzureDataLakeStore",
+								"type": "LinkedServiceReference"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "AzureDataLakeAnalytics",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStore')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeAnalytics')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStore",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureDataLakeStoreLocation",
+						"fileName": "cluster_load_test_scope.csv",
+						"folderPath": "local/mastiki"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStore')]"
 			]
 		},
 		{
@@ -1153,6 +1397,60 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLakeAnalytics')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDataLakeAnalytics",
+				"typeProperties": {
+					"accountName": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_accountName')]",
+					"servicePrincipalId": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeAnalytics_servicePrincipalKey')]"
+					},
+					"tenant": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_tenant')]",
+					"subscriptionId": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName')]"
+				},
+				"connectVia": {
+					"referenceName": "ScopeActivityRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ScopeActivityRuntime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStore')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDataLakeStore",
+				"typeProperties": {
+					"dataLakeStoreUri": "[parameters('AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri')]",
+					"servicePrincipalId": "[parameters('AzureDataLakeStore_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStore_servicePrincipalKey')]"
+					},
+					"tenant": "[parameters('AzureDataLakeStore_properties_typeProperties_tenant')]",
+					"subscriptionId": "[parameters('AzureDataLakeStore_properties_typeProperties_subscriptionId')]",
+					"resourceGroupName": "[parameters('AzureDataLakeStore_properties_typeProperties_resourceGroupName')]"
+				},
+				"connectVia": {
+					"referenceName": "ScopeActivityRuntime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ScopeActivityRuntime')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStoreCosmosStructuredStream1')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1161,6 +1459,11 @@
 				"type": "AzureDataLakeStoreCosmosStructuredStream",
 				"typeProperties": {
 					"accountName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName')]",
+					"servicePrincipalId": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalKey": {
+						"type": "SecureString",
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey')]"
+					},
 					"tenant": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant')]",
 					"subscriptionId": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_subscriptionId')]",
 					"resourceGroupName": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName')]"
@@ -1243,6 +1546,39 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/pipelines/BillingPipeline')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerBillingPerEndpoint')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Triggers BillingPerEndpoint pipeline, daily, last 5 days.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "BillingPerEndpointPipeline",
+							"type": "PipelineReference"
+						},
+						"parameters": {
+							"ParameterNumberOfDays": "[parameters('TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays')]"
+						}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2020-08-24T22:00:00.000Z",
+						"timeZone": "UTC"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/BillingPerEndpointPipeline')]"
 			]
 		},
 		{

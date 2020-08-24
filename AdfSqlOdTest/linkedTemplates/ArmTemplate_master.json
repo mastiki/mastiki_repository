@@ -11,13 +11,69 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
 		},
+		"AzureDataLakeAnalytics_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeAnalytics'"
+		},
+		"AzureDataLakeStore_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeStore'"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalKey' of 'AzureDataLakeStoreCosmosStructuredStream1'"
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase1'"
 		},
+		"AzureDataLakeAnalytics_properties_typeProperties_accountName": {
+			"type": "string",
+			"defaultValue": "sqldb-adhoc-c11"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
+		"AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri": {
+			"type": "string",
+			"defaultValue": "https://sqldb-adhoc-c11.azuredatalakestore.net/webhdfs/v1"
+		},
+		"AzureDataLakeStore_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeStore_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStore_properties_typeProperties_subscriptionId": {
+			"type": "string",
+			"defaultValue": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeStore_properties_typeProperties_resourceGroupName": {
+			"type": "string",
+			"defaultValue": "conv"
+		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
 			"type": "string",
 			"defaultValue": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "853be818-067c-4d0b-b56d-48f2e4c6322e"
 		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
 			"type": "string",
@@ -36,6 +92,10 @@
 			"defaultValue": 5
 		},
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+			"type": "int",
+			"defaultValue": 5
+		},
+		"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
 			"type": "int",
 			"defaultValue": 5
 		},
@@ -73,7 +133,7 @@
 	},
 	"resources": [
 		{
-			"name": "ArmTemplate_0",
+			"name": "AdfSqlOdTest_ArmTemplate_0",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2018-02-01",
 			"properties": {
@@ -89,11 +149,23 @@
 					"AzureBlobStorage1_connectionString": {
 						"value": "[parameters('AzureBlobStorage1_connectionString')]"
 					},
+					"AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey')]"
+					},
 					"AzureSqlDatabase1_connectionString": {
 						"value": "[parameters('AzureSqlDatabase1_connectionString')]"
 					},
+					"AzureDataLakeAnalytics_servicePrincipalKey": {
+						"value": "[parameters('AzureDataLakeAnalytics_servicePrincipalKey')]"
+					},
+					"AzureDataLakeStore_servicePrincipalKey": {
+						"value": "[parameters('AzureDataLakeStore_servicePrincipalKey')]"
+					},
 					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
 						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName')]"
+					},
+					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId')]"
 					},
 					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
 						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant')]"
@@ -104,30 +176,42 @@
 					"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName": {
 						"value": "[parameters('AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_resourceGroupName')]"
 					},
-					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeAnalytics_properties_typeProperties_accountName": {
+						"value": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_accountName')]"
 					},
-					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId')]"
 					},
-					"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeAnalytics_properties_typeProperties_tenant": {
+						"value": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_tenant')]"
 					},
-					"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeAnalytics_properties_typeProperties_subscriptionId": {
+						"value": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_subscriptionId')]"
 					},
-					"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName": {
+						"value": "[parameters('AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName')]"
 					},
-					"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
+					"AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri": {
+						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri')]"
+					},
+					"AzureDataLakeStore_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_servicePrincipalId')]"
+					},
+					"AzureDataLakeStore_properties_typeProperties_tenant": {
+						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_tenant')]"
+					},
+					"AzureDataLakeStore_properties_typeProperties_subscriptionId": {
+						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_subscriptionId')]"
+					},
+					"AzureDataLakeStore_properties_typeProperties_resourceGroupName": {
+						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_resourceGroupName')]"
 					}
 				}
 			},
 			"dependsOn": []
 		},
 		{
-			"name": "ArmTemplate_1",
+			"name": "AdfSqlOdTest_ArmTemplate_1",
 			"type": "Microsoft.Resources/deployments",
 			"apiVersion": "2018-02-01",
 			"properties": {
@@ -140,13 +224,34 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
+					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerNumberofQueriesOverall_properties_NumberOfQueriesOverall_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerQueryDuration_properties_QueryDurationPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerQueryErrors_properties_QueryErrorsPipeline_parameters_ParameterNumberOfDays')]"
+					},
 					"TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerQueryStatus_properties_QueryStatusPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},
 			"dependsOn": [
-				"[resourceId('Microsoft.Resources/deployments', 'ArmTemplate_0')]"
+				"[resourceId('Microsoft.Resources/deployments', 'AdfSqlOdTest_ArmTemplate_0')]"
 			]
 		}
 	]

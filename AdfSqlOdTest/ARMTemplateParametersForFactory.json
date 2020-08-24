@@ -8,11 +8,53 @@
 		"AzureBlobStorage1_connectionString": {
 			"value": ""
 		},
+		"AzureDataLakeAnalytics_servicePrincipalKey": {
+			"value": ""
+		},
+		"AzureDataLakeStore_servicePrincipalKey": {
+			"value": ""
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_servicePrincipalKey": {
+			"value": ""
+		},
 		"AzureSqlDatabase1_connectionString": {
 			"value": ""
 		},
+		"AzureDataLakeAnalytics_properties_typeProperties_accountName": {
+			"value": "sqldb-adhoc-c11"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_servicePrincipalId": {
+			"value": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_tenant": {
+			"value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_subscriptionId": {
+			"value": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeAnalytics_properties_typeProperties_resourceGroupName": {
+			"value": "conv"
+		},
+		"AzureDataLakeStore_properties_typeProperties_dataLakeStoreUri": {
+			"value": "https://sqldb-adhoc-c11.azuredatalakestore.net/webhdfs/v1"
+		},
+		"AzureDataLakeStore_properties_typeProperties_servicePrincipalId": {
+			"value": "853be818-067c-4d0b-b56d-48f2e4c6322e"
+		},
+		"AzureDataLakeStore_properties_typeProperties_tenant": {
+			"value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
+		},
+		"AzureDataLakeStore_properties_typeProperties_subscriptionId": {
+			"value": "c0ef33fb-9268-49e4-a0d8-54297948ad8b"
+		},
+		"AzureDataLakeStore_properties_typeProperties_resourceGroupName": {
+			"value": "conv"
+		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_accountName": {
 			"value": "sqldb-prod-c11"
+		},
+		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_servicePrincipalId": {
+			"value": "853be818-067c-4d0b-b56d-48f2e4c6322e"
 		},
 		"AzureDataLakeStoreCosmosStructuredStream1_properties_typeProperties_tenant": {
 			"value": "72f988bf-86f1-41af-91ab-2d7cd011db47"
@@ -27,6 +69,9 @@
 			"value": 5
 		},
 		"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+			"value": 5
+		},
+		"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
 			"value": 5
 		},
 		"TriggerNumberOfQueries_properties_NumberOfQueries_parameters_ParameterNumberOfDays": {
