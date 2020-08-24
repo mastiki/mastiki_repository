@@ -5,6 +5,16 @@
 			"referenceName": "AzureDataLakeStore",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"filepath": {
+				"type": "string",
+				"defaultValue": "local/mastiki"
+			},
+			"filename": {
+				"type": "string",
+				"defaultValue": "cluster_load_test_scope.csv"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
