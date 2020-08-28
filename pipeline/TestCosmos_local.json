@@ -15,7 +15,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"scriptFolderPath": "local/mastiki",
+					"scriptFolderPath": "local/mastiki/myScripts",
 					"scriptFileName": "testlocal.script",
 					"scriptLinkedService": {
 						"referenceName": "AzureDataLakeStore",
