@@ -205,6 +205,12 @@
 					},
 					"AzureDataLakeStore_properties_typeProperties_resourceGroupName": {
 						"value": "[parameters('AzureDataLakeStore_properties_typeProperties_resourceGroupName')]"
+					},
+					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
+					},
+					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
+						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
 					}
 				}
 			},
@@ -223,12 +229,6 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
-					},
-					"TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerAvgMaxDailyActivity_properties_AvgMaxDailyActivityPipeline_parameters_ParameterNumberOfDays')]"
-					},
-					"TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays": {
-						"value": "[parameters('TriggerBilling_properties_BillingPipeline_parameters_ParameterNumberOfDays')]"
 					},
 					"TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays": {
 						"value": "[parameters('TriggerBillingPerEndpoint_properties_BillingPerEndpointPipeline_parameters_ParameterNumberOfDays')]"
