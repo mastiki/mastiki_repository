@@ -2,7 +2,7 @@
 	"name": "TriggerBilling",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
+		"runtimeState": "Stopped",
 		"pipelines": [
 			{
 				"pipelineReference": {
@@ -19,7 +19,7 @@
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2020-06-14T01:00:00.000Z",
+				"startTime": "2020-06-14T01:00:00Z",
 				"timeZone": "UTC"
 			}
 		}
