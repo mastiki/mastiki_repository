@@ -1,0 +1,40 @@
+{
+	"name": "AzureSqlTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "Region",
+				"type": "varchar"
+			},
+			{
+				"name": "WorkflowRunTime",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "MaxTimeStamp",
+				"type": "datetime2",
+				"scale": 7
+			},
+			{
+				"name": "CurrentDelay",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DataSaved",
+				"type": "bit"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "WorkflowRunHistory_WarpCrp"
+		}
+	}
+}
